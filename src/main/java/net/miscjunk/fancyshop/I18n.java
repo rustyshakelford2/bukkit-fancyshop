@@ -2,6 +2,8 @@ package net.miscjunk.fancyshop;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+
 import org.bukkit.configuration.*;
 import org.bukkit.configuration.file.*;
 
@@ -18,7 +20,7 @@ public class I18n {
         InputStream defConfigStream = plugin.getResource("strings.yml");
         if (defConfigStream == null) throw new IllegalStateException("No strings.yml found");
 
-        this.config = YamlConfiguration.loadConfiguration(defConfigStream);
+        this.config = YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
         this.locale = plugin.getConfig().getString("locale");
     }
 
