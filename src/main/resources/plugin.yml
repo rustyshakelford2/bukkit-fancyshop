@@ -32,6 +32,9 @@ permissions:
     fancyshop.setadmin:
         description: Create unlimited (admin) shops.
         default: op
+    fancyshop.clone:
+        description: Clone a shop
+        default: op
     fancyshop.currency:
         description: Add custom currencies.
         default: op

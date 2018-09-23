@@ -26,6 +26,14 @@ en_US:
         exists: "That name is already a currency!"
         permission: "You don't have permission!"
         usage: "Usage: /fancyshop currency <name>"
+    clone:
+        permission: "You don't have permission!"
+        prompt-1: "Right-click the shop you'd like to copy."
+        prompt-2: "Right-click the chest you'd like to copy into."
+        block-is-not-shop: "That is not a shop! Try again."
+        block-is-already-shop: "That is already a shop. Choose a different chest."
+        no-shop-selected: "You have not selected a shop to copy!"
+        shop-copied: "You have successfully copied the shop!"
     remove:
         confirm: "Shop removed."
         no-shop: "That's not a shop!"
@@ -104,6 +112,7 @@ en_US:
                 /fancyshop remove - Remove a shop.
                 /fancyshop rename <name> - Rename a shop.
         setadmin: "    /fancyshop setadmin true - Make a shop an admin shop.\n    /fancyshop setadmin false - Make a shop a normal shop."
+        clone:    "    /fancyshop clone - Clone a shop into another chest."
         currency: "    /fancyshop currency <name> - Add the held item as a custom currency."
 es_AR:
     translator: MrCobayo
@@ -133,6 +142,14 @@ es_AR:
         exists: "Este nombre ya es una moneda, utiliza otro!"
         permission: "No tienes permiso!"
         usage: "Utiliza: /fancyshop currency <nombre>"
+    clone:
+      permission: "No tienes permiso!"
+      prompt-1: "Haga clic con el botón derecho en la tienda que desea copiar."
+      prompt-2: "Haga clic derecho en el cofre en el que desea copiar."
+      block-is-not-shop: "¡Esa no es una tienda! Inténtalo de nuevo."
+      block-is-already-shop: "Eso ya es una tienda. Elige un cofre diferente."
+      no-shop-selected: "¡No ha seleccionado una tienda para copiar!"
+      shop-copied: "¡Usted ha copiado exitosamente la tienda!"
     remove:
         confirm: "Shop removido."
         no-shop: "Esto no es un shop!"
@@ -201,6 +218,7 @@ es_AR:
                 /fancyshop remove - Quita un shop.
                 /fancyshop rename <nombre> - Cargar nombre de un shop.
         setadmin: "    /fancyshop setadmin true - Crea un shop de administrador.\n    /fancyshop setadmin false - Crea un shop normal."
+        clone:    "    /fancyshop clone - Clona una tienda en otro cofre."
         currency: "    /fancyshop currency <nombre> - Agrega el articulo de tu mano como moneda."
 pl_PL:
     translator: mibac138
@@ -230,6 +248,14 @@ pl_PL:
         exists: "Juz istnieje waluta o takiej nazwie!"
         permission: "Nie masz uprawnien!"
         usage: "Uzycie: /fancyshop currency <nazwa>"
+    clone:
+      permission: "Nie masz pozwolenia!"
+      prompt-1: "Kliknij prawym przyciskiem myszy sklep, który chcesz skopiować."
+      prompt-2: "Kliknij prawym przyciskiem myszy skrzynię, w którą chcesz skopiować."
+      block-is-not-shop: "To nie jest sklep! Spróbuj ponownie."
+      block-is-already-shop: "To już jest sklep. Wybierz inną skrzynię."
+      no-shop-selected: "Nie wybrałeś sklepu do skopiowania!"
+      shop-copied: "Pomyślnie skopiowałeś sklep!"
     remove:
         confirm: "Sklep usuniety."
         no-shop: "To nie jest sklep!"
@@ -308,4 +334,5 @@ pl_PL:
                 /fancyshop remove - Usun sklep.
                 /fancyshop rename <nazwa> - Zmien nazwe sklepu.
         setadmin: "    /fancyshop setadmin true - Sklep z niskonczana iloscia zasobow.\n    /fancyshop setadmin false - Zrob sklep spowrotem normalnym sklepem."
+        clone:    "    /fancyshop clone - Sklonuj sklep do innej skrzyni."
         currency: "    /fancyshop currency <nazwa> - Add the held item as a custom currency."
