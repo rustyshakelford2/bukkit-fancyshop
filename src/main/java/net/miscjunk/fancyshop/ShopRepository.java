@@ -17,14 +17,14 @@ public class ShopRepository {
             throw new RuntimeException("Already initialized");
         }
         if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdir();
-        String dbPath = plugin.getDataFolder().getAbsolutePath()+File.separator+"shops.db";
+        String dbPath = plugin.getDataFolder().getAbsolutePath() + File.separator + "shops.db";
         try {
             Class.forName("org.sqlite.JDBC");
-            db = DriverManager.getConnection("jdbc:sqlite:"+dbPath);
+            db = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Couldn't load sqlite library",e);
+            throw new RuntimeException("Couldn't load sqlite library", e);
         } catch (SQLException e) {
-            throw new RuntimeException("Couldn't open database",e);
+            throw new RuntimeException("Couldn't open database", e);
         }
         ShopRepository.plugin = plugin;
         try {

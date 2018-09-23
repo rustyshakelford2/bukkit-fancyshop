@@ -20,11 +20,11 @@ import java.util.Map;
 public class ShopEditor implements InventoryHolder {
     Shop shop;
     Inventory viewInv;
-    static final int LAST_DEAL=26;
-    static final int PREVIEW=32;
-    static final int CHEST=33;
-    static final int BUY_SELL=34;
-    static final int REMOVE=35;
+    static final int LAST_DEAL = 26;
+    static final int PREVIEW = 32;
+    static final int CHEST = 33;
+    static final int BUY_SELL = 34;
+    static final int REMOVE = 35;
     ItemStack previewBtn;
     ItemStack chestBtn;
     ItemStack buyBtn;
@@ -33,6 +33,7 @@ public class ShopEditor implements InventoryHolder {
     ItemStack doneBtn;
 
     enum State {BUY, SELL, REMOVE}
+
     State state;
     Map<Integer, Deal> dealMap;
 
@@ -42,10 +43,10 @@ public class ShopEditor implements InventoryHolder {
         viewInv = Bukkit.createInventory(this, 36, I18n.s("edit.title"));
         previewBtn = new ItemStack(Material.GLASS, 1);
         chestBtn = new ItemStack(Material.CHEST, 1);
-        buyBtn = new ItemStack(Material.WOOL, 1, (short)5); //green
-        sellBtn = new ItemStack(Material.WOOL, 1, (short)11); //blue
-        removeBtn = new ItemStack(Material.WOOL, 1, (short)14); //red
-        doneBtn = new ItemStack(Material.WOOL, 1, (short)5);
+        buyBtn = new ItemStack(Material.GREEN_WOOL, 1); //green
+        sellBtn = new ItemStack(Material.BLUE_WOOL, 1); //blue
+        removeBtn = new ItemStack(Material.RED_WOOL, 1); //red
+        doneBtn = new ItemStack(Material.WHITE_WOOL, 1);
 
         ItemMeta meta = previewBtn.getItemMeta();
         meta.setDisplayName(I18n.s("edit.buttons.preview.title"));
@@ -64,13 +65,15 @@ public class ShopEditor implements InventoryHolder {
 
         meta = buyBtn.getItemMeta();
         meta.setDisplayName(I18n.s("edit.buttons.buy.title"));
-        lore.clear(); lore.add(I18n.s("edit.buttons.buy.description"));
+        lore.clear();
+        lore.add(I18n.s("edit.buttons.buy.description"));
         meta.setLore(lore);
         buyBtn.setItemMeta(meta);
 
         meta = sellBtn.getItemMeta();
         meta.setDisplayName(I18n.s("edit.buttons.sell.title"));
-        lore.clear(); lore.add(I18n.s("edit.buttons.sell.description"));
+        lore.clear();
+        lore.add(I18n.s("edit.buttons.sell.description"));
         meta.setLore(lore);
         sellBtn.setItemMeta(meta);
 
@@ -94,14 +97,14 @@ public class ShopEditor implements InventoryHolder {
 
     private void refreshView(State st) {
         viewInv.clear();
-        dealMap = new HashMap<Integer, Deal>();
-        for (int i=0; i < shop.deals.size() && i <= LAST_DEAL; i++) {
+        dealMap = new HashMap<>();
+        for (int i = 0; i < shop.deals.size() && i <= LAST_DEAL; i++) {
             Deal d = shop.deals.get(i);
             ItemStack it = d.getItem().clone();
             ItemMeta meta = it.getItemMeta();
             if (st == State.REMOVE) {
                 List<String> lore = new ArrayList<String>();
-                lore.add(""+ChatColor.RESET+ChatColor.RED+I18n.s("edit.remove.description"));
+                lore.add("" + ChatColor.RESET + ChatColor.RED + I18n.s("edit.remove.description"));
                 meta.setLore(lore);
             } else {
                 meta.setLore(d.toLore(shop.isAdmin()));
@@ -111,6 +114,7 @@ public class ShopEditor implements InventoryHolder {
             dealMap.put(i, d);
         }
     }
+
     private void changeState(State next) {
         refreshView(next);
         switch (next) {
@@ -161,7 +165,7 @@ public class ShopEditor implements InventoryHolder {
             event.setCancelled(true);
             return;
         }
-        Player p = (Player)event.getWhoClicked();
+        Player p = (Player) event.getWhoClicked();
         if (event.getRawSlot() >= 0 && event.getRawSlot() <= LAST_DEAL) {
             // click in shop
             switch (event.getAction()) {

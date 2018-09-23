@@ -21,14 +21,14 @@ import java.util.UUID;
 
 public class FancyShopCommandExecutor implements CommandExecutor {
     private FancyShop plugin;
-    boolean flagsInstalled = false;
-    Map<UUID,PendingCommand> pending;
-    Map<UUID,BukkitTask> tasks;
+    boolean flagsInstalled;
+    Map<UUID, PendingCommand> pending;
+    Map<UUID, BukkitTask> tasks;
 
     public FancyShopCommandExecutor(FancyShop plugin) {
         this.plugin = plugin;
-        this.pending = new HashMap<UUID, PendingCommand>();
-        this.tasks = new HashMap<UUID, BukkitTask>();
+        this.pending = new HashMap<>();
+        this.tasks = new HashMap<>();
         flagsInstalled = Bukkit.getServer().getPluginManager().isPluginEnabled("Flags");
         if (flagsInstalled) {
             Bukkit.getLogger().info("Found Flags, enabling region support");
@@ -45,7 +45,7 @@ public class FancyShopCommandExecutor implements CommandExecutor {
             return true;
         }
 
-        Player p = (Player)sender;
+        Player p = (Player) sender;
 
         if (args.length < 1) {
             printUsage(sender);
@@ -84,7 +84,7 @@ public class FancyShopCommandExecutor implements CommandExecutor {
             case SETADMIN:
                 if (event.getClickedBlock() != null && event.getClickedBlock().getState() instanceof InventoryHolder) {
                     event.setCancelled(true);
-                    setAdmin(event.getPlayer(), ((InventoryHolder)event.getClickedBlock().getState()).getInventory(),
+                    setAdmin(event.getPlayer(), ((InventoryHolder) event.getClickedBlock().getState()).getInventory(),
                             cmd.getArgs()[0].equals("true"));
                 }
                 break;
@@ -100,6 +100,7 @@ public class FancyShopCommandExecutor implements CommandExecutor {
     private void remove(Player player, Inventory inv) {
         if (Shop.isShop(inv)) {
             Shop shop = Shop.fromInventory(inv);
+            if (shop == null) return;
             if (!shop.getOwner().equals(player.getUniqueId()) && !player.hasPermission("fancyshop.remove")) {
                 Chat.e(player, I18n.s("remove.owner"));
             } else {
@@ -120,6 +121,7 @@ public class FancyShopCommandExecutor implements CommandExecutor {
             Chat.e(player, I18n.s("create.region"));
         } else {
             Shop shop = Shop.fromInventory(inv, player.getUniqueId());
+            if (shop == null) return;
             ShopRepository.store(shop);
             Chat.s(player, I18n.s("create.confirm"));
             Chat.i(player, I18n.s("create.confirm2"));
@@ -132,11 +134,14 @@ public class FancyShopCommandExecutor implements CommandExecutor {
     private void rename(Player player, Inventory inv, String[] args) {
         if (Shop.isShop(inv)) {
             Shop shop = Shop.fromInventory(inv);
+            if (shop == null) return;
             if (!shop.getOwner().equals(player.getUniqueId())) {
                 Chat.e(player, I18n.s("rename.owner"));
             } else {
                 String name = args[1];
-                for (int i=2; i < args.length; i++) { name += " "+args[i]; }
+                for (int i = 2; i < args.length; i++) {
+                    name += " " + args[i];
+                }
                 shop.setName(name);
                 ShopRepository.store(shop);
                 Chat.s(player, I18n.s("rename.confirm", name));
@@ -152,6 +157,7 @@ public class FancyShopCommandExecutor implements CommandExecutor {
             Chat.e(player, I18n.s("setadmin.no-shop"));
         } else {
             Shop shop = Shop.fromInventory(inv);
+            if (shop == null) return;
             shop.setAdmin(admin);
             ShopRepository.store(shop);
             if (admin) {
@@ -224,19 +230,21 @@ public class FancyShopCommandExecutor implements CommandExecutor {
             Chat.e(player, I18n.s("currency.usage"));
             return;
         }
-        String name = args[1];
-        for (int i=2; i < args.length; i++) { name += " "+args[i]; }
+        StringBuilder name = new StringBuilder(args[1]);
+        for (int i = 2; i < args.length; i++) {
+            name.append(" ").append(args[i]);
+        }
 
-        if (CurrencyManager.getInstance().isCustomCurrency(name)) {
+        if (CurrencyManager.getInstance().isCustomCurrency(name.toString())) {
             Chat.e(player, I18n.s("currency.exists"));
             return;
         }
-        if (player.getItemInHand() == null || player.getItemInHand().getAmount() == 0) {
+        if (player.getInventory().getItemInMainHand() == null || player.getInventory().getItemInMainHand().getAmount() == 0) {
             Chat.e(player, I18n.s("currency.empty"));
             return;
         }
-        CurrencyManager.getInstance().addCustomCurrency(name, player.getItemInHand());
-        Chat.s(player, I18n.s("currency.confirm", name));
+        CurrencyManager.getInstance().addCustomCurrency(name.toString(), player.getItemInHand());
+        Chat.s(player, I18n.s("currency.confirm", name.toString()));
     }
 
     private boolean regionAllows(Player player, Inventory inv) {
@@ -248,10 +256,10 @@ public class FancyShopCommandExecutor implements CommandExecutor {
         Location l;
         io.github.alshain01.flags.area.Area area;
         if (h instanceof BlockState) {
-            l = ((BlockState)h).getLocation();
+            l = ((BlockState) h).getLocation();
             area = io.github.alshain01.flags.CuboidType.getActive().getAreaAt(l);
         } else if (h instanceof DoubleChest) {
-            l = ((DoubleChest)h).getLocation();
+            l = ((DoubleChest) h).getLocation();
             area = io.github.alshain01.flags.CuboidType.getActive().getAreaAt(l);
         } else {
             area = io.github.alshain01.flags.CuboidType.DEFAULT.getAreaAt(player.getLocation());
@@ -288,7 +296,7 @@ public class FancyShopCommandExecutor implements CommandExecutor {
             if (task != null) task.cancel();
             tasks.remove(id);
         }
-        if (pending.containsKey(id)) pending.remove(id);
+        pending.remove(id);
     }
 
     public boolean hasPending(Player player) {
@@ -297,10 +305,10 @@ public class FancyShopCommandExecutor implements CommandExecutor {
 
     public void printUsage(CommandSender sender) {
         Chat.i(sender, I18n.s("usage.main"));
-        if (sender instanceof Player && ((Player)sender).hasPermission("fancyshop.setadmin")) {
+        if (sender instanceof Player && ((Player) sender).hasPermission("fancyshop.setadmin")) {
             Chat.i(sender, I18n.s("usage.setadmin"));
         }
-        if (sender instanceof Player && ((Player)sender).hasPermission("fancyshop.currency")) {
+        if (sender instanceof Player && ((Player) sender).hasPermission("fancyshop.currency")) {
             Chat.i(sender, I18n.s("usage.currency"));
         }
     }

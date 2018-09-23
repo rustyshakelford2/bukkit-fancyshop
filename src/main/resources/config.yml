@@ -18,7 +18,7 @@ locale: en_US
 # Allow only the items specified in 'currencies' to be used as currencies.
 currency-whitelist: false
 currencies:
-    'Lapis Lazuli': '351:4'
+    'Lapis Lazuli': 'LAPIS_LAZULI:4'
 # Prevent basic items from being used as currencies. Items with damage values or NBT data are already disallowed unless
 # specifically allowed above.
 currency-blacklist: []

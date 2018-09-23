@@ -1,16 +1,17 @@
 package net.miscjunk.fancyshop;
 
+import com.comphenix.protocol.utility.MinecraftReflection;
+import com.comphenix.protocol.wrappers.nbt.NbtCompound;
+import com.comphenix.protocol.wrappers.nbt.NbtFactory;
+import com.comphenix.protocol.wrappers.nbt.io.NbtTextSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
-
-import com.comphenix.protocol.utility.MinecraftReflection;
-import com.comphenix.protocol.wrappers.nbt.NbtCompound;
-import com.comphenix.protocol.wrappers.nbt.NbtFactory;
-import com.comphenix.protocol.wrappers.nbt.io.NbtTextSerializer;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -23,18 +24,18 @@ public class CurrencyManager {
     private static CurrencyManager instance;
     FancyShop plugin;
     boolean whitelist;
-    Map<String,ItemStack> currencies;
-    List<Integer> blacklist;
+    Map<String, ItemStack> currencies;
+    List<String> blacklist;
     static boolean protocolInstall = false;
 
     public static void init(FancyShop plugin) {
         if (instance != null) throw new RuntimeException("CurrencyManager is already initialized");
         instance = new CurrencyManager(plugin);
         protocolInstall = Bukkit.getServer().getPluginManager().isPluginEnabled("ProtocolLib");
-        if(protocolInstall)
-        	Bukkit.getLogger().info("Found ProtocolLib, enabling custom item data(NBT) support");
+        if (protocolInstall)
+            Bukkit.getLogger().info("Found ProtocolLib, enabling custom item data(NBT) support");
         else
-        	Bukkit.getLogger().info("ProtocolLib is not installed, disabling custom item data(NBT) support");
+            Bukkit.getLogger().info("ProtocolLib is not installed, disabling custom item data(NBT) support");
     }
 
     public static CurrencyManager getInstance() {
@@ -45,8 +46,8 @@ public class CurrencyManager {
     private CurrencyManager(FancyShop plugin) {
         this.plugin = plugin;
         whitelist = plugin.getConfig().getBoolean("currency-whitelist");
-        blacklist = plugin.getConfig().getIntegerList("currency-blacklist");
-        currencies = new HashMap<String, ItemStack>();
+        blacklist = plugin.getConfig().getStringList("currency-blacklist");
+        currencies = new HashMap<>();
         ConfigurationSection section = plugin.getConfig().getConfigurationSection("currencies");
         for (String name : section.getKeys(false)) {
             String value = section.getString(name);
@@ -55,19 +56,25 @@ public class CurrencyManager {
                 currencies.put(name, stringToItem(value));
             } else {
                 // it's data[:damage]
-                Pattern p = Pattern.compile("([0-9]+)(:([0-9]+))?");
+                Pattern p = Pattern.compile("([A-Z_]+)(:([0-9]+))?");
                 Matcher m = p.matcher(value);
-                m.find();
-                int data = Integer.parseInt(m.group(1));
-                int damage = 0;
-                if (m.group(2) != null) damage = Integer.parseInt(m.group(3));
-                currencies.put(name, new ItemStack(data, 1, (short)damage));
+                if (m.find()) {
+                    String matName = m.group(1).trim();
+                    Material material = Material.matchMaterial(matName);
+                    int damage = 0;
+                    if (m.group(2) != null) damage = Integer.parseInt(m.group(3));
+                    ItemStack stack = new ItemStack(material, 1);
+                    Damageable damageable = (Damageable) stack.getItemMeta();
+                    damageable.setDamage(damage);
+                    stack.setItemMeta((ItemMeta) damageable);
+                    currencies.put(name, stack);
+                }
             }
         }
     }
 
     public String itemToPrice(ItemStack item) {
-        for (Map.Entry<String,ItemStack> e : currencies.entrySet()) {
+        for (Map.Entry<String, ItemStack> e : currencies.entrySet()) {
             if (e.getValue().isSimilar(item)) {
                 return item.getAmount() + " " + e.getKey();
             }
@@ -81,20 +88,19 @@ public class CurrencyManager {
         for (String word : words) {
             sb.append(word.charAt(0)).append(word.substring(1).toLowerCase()).append(' ');
         }
-        sb.deleteCharAt(sb.length()-1);
+        sb.deleteCharAt(sb.length() - 1);
         return sb.toString();
     }
 
     public boolean isCurrency(ItemStack item) {
         if (item == null) return false;
-        if (blacklist.contains(item.getTypeId())) return false;
+        if (blacklist.contains(item.getType().name())) return false;
         for (ItemStack i : currencies.values()) {
             if (i.isSimilar(item)) return true;
         }
         if (whitelist) return false;
         if (item.hasItemMeta()) return false;
-        if (item.getData().getData() != 0) return false;
-        return true;
+        return item.getData().getData() == 0;
     }
 
     public boolean isCustomCurrency(String name) {
@@ -114,8 +120,8 @@ public class CurrencyManager {
         YamlConfiguration c = new YamlConfiguration();
         c.set("item", item);
         String result = c.saveToString();
-        if(protocolInstall == true && item != null && item.hasItemMeta()) {
-        	result += "  NBTTag: '" + ProtocolLibHook.getNbtTextSerializer(item) + "'";
+        if (protocolInstall && item != null && item.hasItemMeta()) {
+            result += "  NBTTag: '" + ProtocolLibHook.getNbtTextSerializer(item) + "'";
         }
         return result;
     }
@@ -128,15 +134,14 @@ public class CurrencyManager {
         try {
             c.loadFromString(str);
             d.loadFromString(NBTTag);
-        } catch(InvalidConfigurationException e) {
+        } catch (InvalidConfigurationException e) {
             return null;
         }
         Object o = c.get("item");
         NBTTag = (String) d.get("item.NBTTag");
         if (!(o instanceof ItemStack)) return null;
-        if (NBTTag == null || protocolInstall == false) return (ItemStack)o;
-        ItemStack item = ProtocolLibHook.setTagFromText((ItemStack)o, NBTTag);
-        return item;
+        if (NBTTag == null || !protocolInstall) return (ItemStack) o;
+        return ProtocolLibHook.setTagFromText((ItemStack) o, NBTTag);
     }
 }
 
@@ -147,25 +152,24 @@ class ProtocolLibHook {
         else
             return stack;
     }
-	
+
     public static String getNbtTextSerializer(ItemStack item) {
         item = ProtocolLibHook.getCraftItemStack(item);
         NbtCompound tag = NbtFactory.asCompound(NbtFactory.fromItemTag(item));
-        String textwrape = new NbtTextSerializer().serialize(tag);
-        return textwrape;	
+        return new NbtTextSerializer().serialize(tag);
     }
 
     public static ItemStack setTagFromText(ItemStack item, String NBTTag) {
-        if(NBTTag.isEmpty())
+        if (NBTTag.isEmpty())
             return item;
         item = ProtocolLibHook.getCraftItemStack(item);
-        NbtCompound nbtstr = null;
+        NbtCompound nbtstr;
         try {
             nbtstr = new NbtTextSerializer().deserializeCompound(NBTTag);
         } catch (IOException e) {
             return item;
         }
-        if(!nbtstr.getKeys().isEmpty())        	
+        if (!nbtstr.getKeys().isEmpty())
             NbtFactory.setItemTag(item, nbtstr);
         return item;
     }

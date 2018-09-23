@@ -1,7 +1,7 @@
 package net.miscjunk.fancyshop;
 
 public class PendingCommand {
-    enum Type { CREATE, REMOVE, SETADMIN, RENAME };
+    enum Type {CREATE, REMOVE, SETADMIN, RENAME}
 
     private Type type;
     private String[] args;

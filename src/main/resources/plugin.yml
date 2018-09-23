@@ -5,6 +5,7 @@ main: net.miscjunk.fancyshop.FancyShop
 name: FancyShop
 startup: postworld
 version: '${pom.version}'
+api-version: 1.13
 softdepend: [Flags, ProtocolLib]
 commands:
     fancyshop:
