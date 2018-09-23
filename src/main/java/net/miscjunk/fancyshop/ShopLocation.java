@@ -41,17 +41,17 @@ public class ShopLocation {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof ShopLocation)) return false;
-        ShopLocation other = (ShopLocation)o;
+        ShopLocation other = (ShopLocation) o;
         return other.world.equals(world) && other.x == x && other.y == y && other.z == z;
     }
 
     @Override
     public int hashCode() {
-        return (world+"x"+x+"y"+y+"z"+z).hashCode();
+        return (world + "x" + x + "y" + y + "z" + z).hashCode();
     }
 
     @Override
     public String toString() {
-        return ("block:"+world+"x"+x+"y"+y+"z"+z);
+        return ("block:" + world + "x" + x + "y" + y + "z" + z);
     }
 }

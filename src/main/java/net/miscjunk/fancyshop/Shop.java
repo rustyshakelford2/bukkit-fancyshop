@@ -2,11 +2,8 @@ package net.miscjunk.fancyshop;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.DoubleChest;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -15,14 +12,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class Shop implements InventoryHolder {
     ShopLocation location;
@@ -51,14 +43,7 @@ public class Shop implements InventoryHolder {
     public static Shop fromInventory(Inventory inv, UUID owner) {
         if (shopMap == null) shopMap = new HashMap<ShopLocation, Shop>();
         InventoryHolder h = inv.getHolder();
-        Location l;
-        if (h instanceof BlockState) {
-            l = ((BlockState)h).getLocation();
-        } else if (h instanceof DoubleChest) {
-            l = ((DoubleChest)h).getLocation();
-        } else {
-            return null;
-        }
+        Location l = getLocFromInvHolder(h);
         ShopLocation loc = new ShopLocation(l);
         if (shopMap.containsKey(loc) && shopMap.get(loc) != null) {
             return shopMap.get(loc);
@@ -74,14 +59,7 @@ public class Shop implements InventoryHolder {
     public static Shop fromInventory(Inventory inv) {
         if (shopMap == null) shopMap = new HashMap<ShopLocation, Shop>();
         InventoryHolder h = inv.getHolder();
-        Location l;
-        if (h instanceof BlockState) {
-            l = ((BlockState)h).getLocation();
-        } else if (h instanceof DoubleChest) {
-            l = ((DoubleChest)h).getLocation();
-        } else {
-            return null;
-        }
+        Location l = getLocFromInvHolder(h);
         ShopLocation loc = new ShopLocation(l);
         if (shopMap.containsKey(loc) && shopMap.get(loc) != null) {
             return shopMap.get(loc);
@@ -90,14 +68,26 @@ public class Shop implements InventoryHolder {
         }
     }
 
+    private static Location getLocFromInvHolder(InventoryHolder h) {
+        Location l;
+        if (h instanceof BlockState) {
+            l = ((BlockState) h).getLocation();
+        } else if (h instanceof DoubleChest) {
+            l = ((DoubleChest) h).getLocation();
+        } else {
+            return null;
+        }
+        return l;
+    }
+
     public static boolean isShop(Inventory inv) {
         if (shopMap == null) shopMap = new HashMap<ShopLocation, Shop>();
         InventoryHolder h = inv.getHolder();
         Location l;
         if (h instanceof BlockState) {
-            l = ((BlockState)h).getLocation();
+            l = ((BlockState) h).getLocation();
         } else if (h instanceof DoubleChest) {
-            l = ((DoubleChest)h).getLocation();
+            l = ((DoubleChest) h).getLocation();
         } else {
             return false;
         }
@@ -109,7 +99,7 @@ public class Shop implements InventoryHolder {
     }
 
     public static void removeShop(ShopLocation loc) {
-        if (shopMap != null && shopMap.containsKey(loc)) {
+        if (shopMap != null) {
             shopMap.remove(loc);
         }
     }
@@ -164,7 +154,7 @@ public class Shop implements InventoryHolder {
     }
 
     public void refreshView() {
-        dealMap = new HashMap<Integer, Deal>();
+        dealMap = new HashMap<>();
         refreshDeals();
         viewInv.clear();
         int i = 0;
@@ -190,12 +180,12 @@ public class Shop implements InventoryHolder {
             }
             if (deal.getSellPrice() != null) {
                 int currency = countItems(sourceInv, deal.getSellPrice());
-                deal.setBuying(deal.getItem().getAmount() * currency/deal.getSellPrice().getAmount());
+                deal.setBuying(deal.getItem().getAmount() * currency / deal.getSellPrice().getAmount());
             } else {
                 deal.setBuying(0);
             }
             int i = -1;
-            for (Map.Entry<Integer,Deal> e : dealMap.entrySet()) {
+            for (Map.Entry<Integer, Deal> e : dealMap.entrySet()) {
                 if (e.getValue() == deal) {
                     i = e.getKey();
                     break;
@@ -217,6 +207,7 @@ public class Shop implements InventoryHolder {
         }
         return count;
     }
+
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getRawSlot() >= 0 && event.getRawSlot() < event.getInventory().getSize()) {
             // click in shop
@@ -268,7 +259,7 @@ public class Shop implements InventoryHolder {
 
     private boolean sell(HumanEntity whoClicked, Deal deal, InventoryView view) {
         if (!(whoClicked instanceof Player)) return false;
-        Player p = (Player)whoClicked;
+        Player p = (Player) whoClicked;
         ItemStack cursor = view.getCursor();
         if (deal.getItem().isSimilar(cursor)) {
             if (deal.getItem().getAmount() > cursor.getAmount()) {
@@ -296,7 +287,7 @@ public class Shop implements InventoryHolder {
                         }
                         sourceInv.removeItem(deal.getSellPrice());
                     }
-                    cursor.setAmount(cursor.getAmount()-deal.getItem().getAmount());
+                    cursor.setAmount(cursor.getAmount() - deal.getItem().getAmount());
                     if (cursor.getAmount() == 0) view.setCursor(null);
                     overflow = whoClicked.getInventory().addItem(deal.getSellPrice().clone());
                     for (ItemStack it : overflow.values()) {
@@ -325,7 +316,7 @@ public class Shop implements InventoryHolder {
 
     private boolean buy(HumanEntity whoClicked, Deal deal, InventoryView view) {
         if (!(whoClicked instanceof Player)) return false;
-        Player p = (Player)whoClicked;
+        Player p = (Player) whoClicked;
         ItemStack cursor = view.getCursor();
         if (deal.getBuyPrice().isSimilar(cursor)) {
             if (deal.getBuyPrice().getAmount() > cursor.getAmount()) {
@@ -353,7 +344,7 @@ public class Shop implements InventoryHolder {
                         }
                         sourceInv.removeItem(deal.getItem());
                     }
-                    cursor.setAmount(cursor.getAmount()-deal.getBuyPrice().getAmount());
+                    cursor.setAmount(cursor.getAmount() - deal.getBuyPrice().getAmount());
                     if (cursor.getAmount() == 0) {
                         view.setCursor(deal.getItem().clone());
                     } else {

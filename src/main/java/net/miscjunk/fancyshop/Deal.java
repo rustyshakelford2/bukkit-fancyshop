@@ -14,7 +14,7 @@ public class Deal {
     private ItemStack sellPrice;
 
     public Deal(ItemStack item) {
-        this(item, (ItemStack)null, (ItemStack)null);
+        this(item, null, null);
     }
 
     public Deal(ItemStack item, ItemStack buyPrice, ItemStack sellPrice) {
@@ -36,14 +36,14 @@ public class Deal {
     public List<String> toLore(boolean admin) {
         List<String> lore = new ArrayList<String>();
         if (buyPrice != null)
-            lore.add(""+ChatColor.RESET+ChatColor.GREEN+I18n.s("deal.buy", CurrencyManager.getInstance().itemToPrice(buyPrice)));
+            lore.add("" + ChatColor.RESET + ChatColor.GREEN + I18n.s("deal.buy", CurrencyManager.getInstance().itemToPrice(buyPrice)));
         if (sellPrice != null)
-            lore.add(""+ChatColor.RESET+ChatColor.BLUE+I18n.s("deal.sell", CurrencyManager.getInstance().itemToPrice(sellPrice)));
+            lore.add("" + ChatColor.RESET + ChatColor.BLUE + I18n.s("deal.sell", CurrencyManager.getInstance().itemToPrice(sellPrice)));
         if (buyPrice != null && !admin) {
             if (available > 0) {
                 lore.add(I18n.s("deal.stock", available));
             } else {
-                lore.add(ChatColor.RED+I18n.s("deal.no-stock"));
+                lore.add(ChatColor.RED + I18n.s("deal.no-stock"));
             }
         }
         if (sellPrice != null && !admin) {
@@ -54,7 +54,7 @@ public class Deal {
             }
         }
         if (buyPrice == null && sellPrice == null) {
-            lore.add(""+ChatColor.RESET+ChatColor.RED+I18n.s("deal.no-price"));
+            lore.add("" + ChatColor.RESET + ChatColor.RED + I18n.s("deal.no-price"));
         }
         return lore;
     }

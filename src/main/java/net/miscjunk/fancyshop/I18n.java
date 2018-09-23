@@ -1,11 +1,10 @@
 package net.miscjunk.fancyshop;
 
-import java.io.File;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
-import org.bukkit.configuration.*;
-import org.bukkit.configuration.file.*;
 
 public class I18n {
     private static I18n instance;
