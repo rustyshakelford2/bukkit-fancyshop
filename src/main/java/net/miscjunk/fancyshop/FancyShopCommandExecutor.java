@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import static net.miscjunk.fancyshop.PendingCommand.Type.CLONE_STAGE_TWO;
+
 public class FancyShopCommandExecutor implements CommandExecutor {
     private FancyShop plugin;
     boolean flagsInstalled;
@@ -59,7 +61,9 @@ public class FancyShopCommandExecutor implements CommandExecutor {
             currency(p, cmd, label, args);
         } else if (args[0].equals("rename")) {
             rename(p, cmd, label, args);
-        } else {
+        } else if (args[0].equals("clone")) { // simpleauthority start
+            clone(p, cmd, label, args);
+        } else { // simpleauthority end
             printUsage(sender);
         }
         return true;
@@ -94,6 +98,24 @@ public class FancyShopCommandExecutor implements CommandExecutor {
                     rename(event.getPlayer(), ((InventoryHolder) event.getClickedBlock().getState()).getInventory(), cmd.getArgs());
                 }
                 break;
+            // simpleauthority start
+            case CLONE_STAGE_ONE:
+                if (event.getClickedBlock() != null && event.getClickedBlock().getState() instanceof InventoryHolder) {
+                    event.setCancelled(true);
+                    cloneInitial(event.getPlayer(), ((InventoryHolder) event.getClickedBlock().getState()).getInventory());
+                }
+                break;
+            case CLONE_STAGE_TWO:
+                if (event.getClickedBlock() != null && event.getClickedBlock().getState() instanceof InventoryHolder) {
+                    if (!cmd.hasPendingInventory()) {
+                        Chat.e(event.getPlayer(), I18n.s("clone.no-shop-selected"));
+                        return;
+                    }
+                    event.setCancelled(true);
+                    cloneFinal(event.getPlayer(), cmd.getPendingInventory(), ((InventoryHolder) event.getClickedBlock().getState()).getInventory());
+                }
+                break;
+            // simpleauthority ned
         }
     }
 
@@ -138,13 +160,13 @@ public class FancyShopCommandExecutor implements CommandExecutor {
             if (!shop.getOwner().equals(player.getUniqueId())) {
                 Chat.e(player, I18n.s("rename.owner"));
             } else {
-                String name = args[1];
+                StringBuilder name = new StringBuilder(args[1]);
                 for (int i = 2; i < args.length; i++) {
-                    name += " " + args[i];
+                    name.append(" ").append(args[i]);
                 }
-                shop.setName(name);
+                shop.setName(name.toString());
                 ShopRepository.store(shop);
-                Chat.s(player, I18n.s("rename.confirm", name));
+                Chat.s(player, I18n.s("rename.confirm", name.toString()));
             }
         } else {
             Chat.e(player, I18n.s("rename.no-shop"));
@@ -247,6 +269,62 @@ public class FancyShopCommandExecutor implements CommandExecutor {
         Chat.s(player, I18n.s("currency.confirm", name.toString()));
     }
 
+    // simpleauthority start
+    private void clone(Player player, Command cmd, String label, String[] args) {
+        if (!player.hasPermission("fancyshop.clone")) {
+            Chat.e(player, I18n.s("clone.permission"));
+            return;
+        }
+        Chat.i(player, I18n.s("clone.prompt-1"));
+        setPending(player, new PendingCommand(PendingCommand.Type.CLONE_STAGE_ONE));
+    }
+
+    private void cloneInitial(Player player, Inventory holder) {
+        if (!player.hasPermission("fancyshop.clone")) { // player has lost permission between when they used the command and now
+            Chat.e(player, I18n.s("clone.permission"));
+            clearPending(player);
+            return;
+        }
+
+        if (!Shop.isShop(holder)) {
+            Chat.e(player, I18n.s("clone.block-is-not-shop"));
+            clearPending(player);
+            clone(player, null, null, null);
+            return;
+        }
+
+        Chat.i(player, I18n.s("clone.prompt-2"));
+        PendingCommand pending = new PendingCommand(CLONE_STAGE_TWO);
+        pending.setPendingInventory(holder);
+        setPending(player, pending);
+    }
+
+    private void cloneFinal(Player player, Inventory from, Inventory to) {
+        if (!player.hasPermission("fancyshop.clone")) { // player has lost permission between when they clicked the first chest and now
+            Chat.e(player, I18n.s("clone.permission"));
+            clearPending(player);
+            return;
+        }
+
+        if (Shop.isShop(to)) {
+            Chat.e(player, I18n.s("clone.block-is-already-shop"));
+            clearPending(player);
+            cloneInitial(player, from);
+            return;
+        }
+
+        Shop shopFrom = Shop.fromInventory(from);
+        if (shopFrom == null) return;
+
+        Shop shopTo = shopFrom.clone(new ShopLocation(to.getLocation()));
+        Chat.s(player, I18n.s("clone.shop-copied"));
+        ShopRepository.store(shopTo);
+        Shop.shopMap.put(shopTo.location, shopTo);
+        shopTo.edit(player);
+        clearPending(player);
+    }
+    // simpleauthority end
+
     private boolean regionAllows(Player player, Inventory inv) {
         if (!flagsInstalled) return true;
         if (player.hasPermission("fancyshop.create.anywhere")) return true;
@@ -307,6 +385,9 @@ public class FancyShopCommandExecutor implements CommandExecutor {
         Chat.i(sender, I18n.s("usage.main"));
         if (sender instanceof Player && ((Player) sender).hasPermission("fancyshop.setadmin")) {
             Chat.i(sender, I18n.s("usage.setadmin"));
+        }
+        if (sender instanceof Player && sender.hasPermission("fancyshop.clone")) {
+            Chat.i(sender, I18n.s("usage.clone"));
         }
         if (sender instanceof Player && ((Player) sender).hasPermission("fancyshop.currency")) {
             Chat.i(sender, I18n.s("usage.currency"));

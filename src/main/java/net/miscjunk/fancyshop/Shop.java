@@ -36,12 +36,12 @@ public class Shop implements InventoryHolder {
         this.admin = admin;
         sourceInv = inv;
         viewInv = Bukkit.createInventory(this, 27, name);
-        deals = new ArrayList<Deal>();
+        deals = new ArrayList<>();
         refreshView();
     }
 
     public static Shop fromInventory(Inventory inv, UUID owner) {
-        if (shopMap == null) shopMap = new HashMap<ShopLocation, Shop>();
+        if (shopMap == null) shopMap = new HashMap<>();
         InventoryHolder h = inv.getHolder();
         Location l = getLocFromInvHolder(h);
         ShopLocation loc = new ShopLocation(l);
@@ -57,7 +57,7 @@ public class Shop implements InventoryHolder {
     }
 
     public static Shop fromInventory(Inventory inv) {
-        if (shopMap == null) shopMap = new HashMap<ShopLocation, Shop>();
+        if (shopMap == null) shopMap = new HashMap<>();
         InventoryHolder h = inv.getHolder();
         Location l = getLocFromInvHolder(h);
         ShopLocation loc = new ShopLocation(l);
@@ -81,7 +81,7 @@ public class Shop implements InventoryHolder {
     }
 
     public static boolean isShop(Inventory inv) {
-        if (shopMap == null) shopMap = new HashMap<ShopLocation, Shop>();
+        if (shopMap == null) shopMap = new HashMap<>();
         InventoryHolder h = inv.getHolder();
         Location l;
         if (h instanceof BlockState) {
@@ -103,6 +103,18 @@ public class Shop implements InventoryHolder {
             shopMap.remove(loc);
         }
     }
+
+    // simpleauthority start
+    public Shop clone(ShopLocation newLocation) {
+        Inventory inventory = Bukkit.createInventory(this, sourceInv.getSize());
+        inventory.setContents(sourceInv.getStorageContents());
+        Shop shop = new Shop(newLocation, inventory, owner, name, admin);
+        shop.deals = new ArrayList<>(deals);
+        shop.editor = new ShopEditor(shop);
+        shop.refreshView();
+        return shop;
+    }
+    // simpleauthority end
 
     public void open(Player player) {
         player.openInventory(viewInv);
